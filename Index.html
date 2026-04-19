@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="fr">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Bodybuilder Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000"><style>
+body{font-family:Inter;background:#000;color:#fff;margin:0;text-align:center}
+#splash{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center;flex-direction:column}
+.hidden{display:none}
+.header{padding:15px;font-size:22px;font-weight:700}
+.card{background:#111;margin:10px;padding:15px;border-radius:20px}
+button{padding:12px;margin:5px;border-radius:12px;border:none;font-weight:600}
+.primary{background:#00e676;color:#000}
+.secondary{background:#2979ff;color:#fff}
+.bar{height:8px;background:#333;border-radius:10px}
+.fill{height:8px;background:#00e676;width:0%}
+input{padding:10px;border-radius:10px;border:none;background:#222;color:#fff}
+canvas{background:#111;border-radius:10px;margin-top:10px}
+</style></head><body><div id="splash">
+<h1>💀 Elite Coach</h1>
+<p>Loading...</p>
+</div><div id="app" class="hidden"><div class="header">💪 Elite Coach</div><div class="card">
+<p id="goal">1800 kcal / 170g</p>
+<button class="primary" onclick="adjustCalories()">-100 kcal</button>
+</div><div class="card">
+<h3>Nutrition</h3>
+<button class="primary" onclick="addMeal(900,80)">Meal 1</button>
+<button class="primary" onclick="addMeal(900,80)">Meal 2</button>
+<button class="secondary" onclick="addShake()">Whey</button>
+<p id="total">0 kcal / 0g</p>
+<div class="bar"><div id="calBar" class="fill"></div></div>
+<div class="bar"><div id="protBar" class="fill"></div></div>
+</div><div class="card">
+<h3>Training</h3>
+<p id="workout"></p>
+<button class="primary" onclick="markDone()">Fait</button>
+</div><div class="card">
+<h3>Poids</h3>
+<input id="weight" type="number" placeholder="Poids">
+<button class="primary" onclick="saveWeight()">Save</button>
+<p id="weightDisplay"></p>
+<canvas id="chart" width="300" height="150"></canvas>
+</div></div><script>
+let calories=0,protein=0;
+let calGoal=1800,protGoal=170;
+
+const split=["Push","Pull","Repos","Jambes","Upper","Cardio","Repos"];
+
+function loadWorkout(){document.getElementById('workout').innerText=split[new Date().getDay()];}
+
+function addMeal(c,p){calories+=c;protein+=p;update();}
+function addShake(){calories+=120;protein+=25;update();}
+
+function update(){
+ document.getElementById('total').innerText=calories+" kcal / "+protein+" g";
+ document.getElementById('calBar').style.width=(calories/calGoal*100)+"%";
+ document.getElementById('protBar').style.width=(protein/protGoal*100)+"%";
+}
+
+function adjustCalories(){calGoal-=100;document.getElementById('goal').innerText=calGoal+" kcal / "+protGoal+"g";}
+
+function markDone(){alert("Validé 💪");}
+
+function saveWeight(){
+ let w=parseFloat(document.getElementById('weight').value);
+ if(!w)return;
+ let h=JSON.parse(localStorage.getItem('history')||"[]");
+ h.push(w);
+ localStorage.setItem('history',JSON.stringify(h));
+ document.getElementById('weightDisplay').innerText="Dernier: "+w+" kg";
+ drawChart();
+}
+
+function drawChart(){
+ let c=document.getElementById('chart');
+ let ctx=c.getContext('2d');
+ ctx.clearRect(0,0,c.width,c.height);
+ let h=JSON.parse(localStorage.getItem('history')||"[]");
+ if(h.length<2)return;
+ let max=Math.max(...h),min=Math.min(...h);
+ let step=c.width/(h.length-1);
+ ctx.beginPath();
+ h.forEach((v,i)=>{
+  let x=i*step;
+  let y=c.height-((v-min)/(max-min||1))*c.height;
+  if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+ });
+ ctx.strokeStyle="#00e676";
+ ctx.stroke();
+}
+
+window.onload=function(){
+ loadWorkout();
+ drawChart();
+ setTimeout(()=>{
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+ },1500);
+}
+</script></body>
+</html>
